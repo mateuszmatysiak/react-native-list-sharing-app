@@ -1,6 +1,23 @@
 {
-  "extends": "expo/tsconfig.base",
-  "compilerOptions": {
-    "strict": true
-  }
+	"extends": "expo/tsconfig.base",
+	"compilerOptions": {
+		"baseUrl": "./",
+		"isolatedModules": true,
+		"verbatimModuleSyntax": true,
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"paths": {
+			"@/*": ["src/*"],
+			"@/components/*": ["src/components/*"],
+			"@/screens/*": ["src/screens/*"],
+			"@/utils/*": ["src/utils/*"],
+			"@/hooks/*": ["src/hooks/*"],
+			"@/context/*": ["src/context/*"],
+			"@/navigation/*": ["src/navigation/*"]
+		}
+	},
+	"include": ["**/*.ts", "**/*.tsx"],
+	"exclude": ["node_modules", "package-lock.json", ".expo"]
 }
