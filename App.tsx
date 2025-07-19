@@ -1,12 +1,33 @@
-import type React from 'react';
-import { Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { CriticalErrorBoundary } from '@/components/ui';
+import { AuthProvider } from '@/context/AuthContext';
+import { ListProvider } from '@/context/ListContext';
+import { RootNavigator } from '@/navigation/RootNavigator';
+import { ThemeProvider } from '@/styles/theme';
 
-const App: React.FC = () => {
+export default function App() {
 	return (
-		<View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-			<Text style={{ fontSize: 24, fontWeight: 'bold' }}>Lista App</Text>
-		</View>
+		<CriticalErrorBoundary>
+			<SafeAreaProvider>
+				<ThemeProvider>
+					<AuthProvider>
+						<ListProvider>
+							<View style={styles.container}>
+								<StatusBar style="auto" />
+								<RootNavigator />
+							</View>
+						</ListProvider>
+					</AuthProvider>
+				</ThemeProvider>
+			</SafeAreaProvider>
+		</CriticalErrorBoundary>
 	);
-};
+}
 
-export default App;
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+	},
+});
