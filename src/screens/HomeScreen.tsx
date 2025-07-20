@@ -115,7 +115,7 @@ SearchHeader.displayName = 'SearchHeader';
 const HomeScreenContent: React.FC<HomeScreenProps> = ({ navigation }) => {
 	const [searchTerm, setSearchTerm] = useState('');
 	const { signOut, user } = useAuth();
-	const { lists, loading, error, refreshLists, setFilter } = useList();
+	const { lists, loading, error, refreshLists, setFilter, deleteList } = useList();
 	const { theme } = useTheme();
 
 	const handleLogout = useCallback(() => {
@@ -158,6 +158,26 @@ const HomeScreenContent: React.FC<HomeScreenProps> = ({ navigation }) => {
 		[navigation],
 	);
 
+	const handleDeleteList = useCallback(
+		(listId: string) => {
+			Alert.alert(
+				'Usuń listę',
+				'Czy na pewno chcesz usunąć tę listę? Tej operacji nie można cofnąć.',
+				[
+					{ text: 'Anuluj', style: 'cancel' },
+					{
+						text: 'Usuń',
+						style: 'destructive',
+						onPress: async () => {
+							await deleteList(listId);
+						},
+					},
+				],
+			);
+		},
+		[deleteList],
+	);
+
 	const renderListItem = useCallback(
 		({ item }: { item: ListWithStats }) => (
 			<ListCard
@@ -165,9 +185,10 @@ const HomeScreenContent: React.FC<HomeScreenProps> = ({ navigation }) => {
 				onPress={() => handleListPress(item)}
 				onShare={() => handleShareList(item)}
 				onEdit={() => handleEditList(item)}
+				onDelete={handleDeleteList}
 			/>
 		),
-		[handleListPress, handleShareList, handleEditList],
+		[handleListPress, handleShareList, handleEditList, handleDeleteList],
 	);
 
 	const renderHeader = useCallback(
