@@ -128,8 +128,12 @@ export const CreateListModal: React.FC<CreateListModalProps> = ({ navigation }) 
 						style={{ flex: 1 }}
 						contentContainerStyle={{
 							padding: theme.spacing.lg,
+							paddingBottom: theme.spacing.xl,
 						}}
-						showsVerticalScrollIndicator={false}
+						showsVerticalScrollIndicator={true}
+						keyboardShouldPersistTaps="handled"
+						automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+						keyboardDismissMode="interactive"
 					>
 						<Input
 							label="Nazwa listy"
@@ -199,6 +203,7 @@ export const CreateListModal: React.FC<CreateListModalProps> = ({ navigation }) 
 							padding: theme.spacing.lg,
 							borderTopWidth: 1,
 							borderTopColor: theme.colors.border,
+							backgroundColor: theme.colors.background,
 						}}
 					>
 						<Button title="Anuluj" variant="outline" onPress={handleClose} style={{ flex: 1 }} />
