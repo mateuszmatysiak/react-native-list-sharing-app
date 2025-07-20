@@ -24,7 +24,7 @@ React Native application built with Expo for creating and sharing lists with fri
 ## 📱 Prerequisites
 
 - Node.js (v22 or higher)
-- npm
+- pnpm
 - Expo CLI
 - iOS Simulator (for iOS development) or Android Studio (for Android development)
 - Expo Go app on your mobile device (for testing)
@@ -39,32 +39,32 @@ React Native application built with Expo for creating and sharing lists with fri
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Start the development server**
    ```bash
-   npm start
+   pnpm start
    ```
 
 ## 🎯 Getting Started
 
 ### Development Scripts
 
-- `npm start` - Start the Expo development server
-- `npm run android` - Start on Android device/emulator
-- `npm run ios` - Start on iOS simulator
-- `npm run web` - Start on web browser
-- `npm run lint` - Run Biome linter
-- `npm run format` - Format code with Biome
-- `npm run check` - Run Biome check (lint + format)
-- `npm run typecheck` - Run TypeScript type checking
+- `pnpm start` - Start the Expo development server
+- `pnpm android` - Start on Android device/emulator
+- `pnpm ios` - Start on iOS simulator
+- `pnpm web` - Start on web browser
+- `pnpm lint` - Run Biome linter
+- `pnpm format` - Format code with Biome
+- `pnpm check` - Run Biome check (lint + format)
+- `pnpm typecheck` - Run TypeScript type checking
 
 ### Running the App
 
 1. Start the development server:
    ```bash
-   npm start
+   pnpm start
    ```
 
 2. Choose your preferred method:
