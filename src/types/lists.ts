@@ -47,6 +47,7 @@ export interface ListWithStats extends List {
 	canEdit: boolean;
 	canDelete: boolean;
 	canShare: boolean;
+	canEditTitle: boolean;
 }
 
 // List filter options

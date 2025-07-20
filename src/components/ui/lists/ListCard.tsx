@@ -1,4 +1,4 @@
-import { Clock, Share, Trash2, Users } from 'lucide-react-native';
+import { Clock, Edit3, Share, Trash2, Users } from 'lucide-react-native';
 import type React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { Card } from '@/components/ui/Card';
@@ -11,10 +11,18 @@ export interface ListCardProps {
 	onPress: (list: ListWithStats) => void;
 	onShare?: (list: ListWithStats) => void;
 	onDelete?: (listId: string) => void;
+	onEdit?: (list: ListWithStats) => void;
 	testID?: string;
 }
 
-export const ListCard: React.FC<ListCardProps> = ({ list, onPress, onShare, onDelete, testID }) => {
+export const ListCard: React.FC<ListCardProps> = ({
+	list,
+	onPress,
+	onShare,
+	onDelete,
+	onEdit,
+	testID,
+}) => {
 	const { theme } = useTheme();
 
 	const formatDate = (dateString: string) => {
@@ -146,6 +154,16 @@ export const ListCard: React.FC<ListCardProps> = ({ list, onPress, onShare, onDe
 			</TouchableOpacity>
 
 			<View style={getActionsStyle()}>
+				{list.canEditTitle && onEdit && (
+					<TouchableOpacity
+						style={getActionButtonStyle()}
+						onPress={() => onEdit(list)}
+						accessibilityLabel="Edytuj nazwę listy"
+					>
+						<Edit3 size={16} color={theme.colors.textSecondary} />
+					</TouchableOpacity>
+				)}
+
 				{list.canShare && onShare && (
 					<TouchableOpacity
 						style={getActionButtonStyle()}

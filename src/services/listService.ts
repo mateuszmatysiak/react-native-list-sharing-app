@@ -144,6 +144,7 @@ export class ListService {
 			canEdit: isOwner || isSharedWithCurrentUser,
 			canDelete: isOwner,
 			canShare: isOwner,
+			canEditTitle: isOwner,
 		};
 	}
 

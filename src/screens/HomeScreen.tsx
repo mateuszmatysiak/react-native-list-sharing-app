@@ -151,15 +151,23 @@ const HomeScreenContent: React.FC<HomeScreenProps> = ({ navigation }) => {
 		[navigation],
 	);
 
+	const handleEditList = useCallback(
+		(list: ListWithStats) => {
+			navigation.navigate('EditListModal', { list });
+		},
+		[navigation],
+	);
+
 	const renderListItem = useCallback(
 		({ item }: { item: ListWithStats }) => (
 			<ListCard
 				list={item}
 				onPress={() => handleListPress(item)}
 				onShare={() => handleShareList(item)}
+				onEdit={() => handleEditList(item)}
 			/>
 		),
-		[handleListPress, handleShareList],
+		[handleListPress, handleShareList, handleEditList],
 	);
 
 	const renderHeader = useCallback(

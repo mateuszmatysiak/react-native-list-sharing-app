@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Share2, X } from 'lucide-react-native';
+import { Share, X } from 'lucide-react-native';
 import type React from 'react';
 import { useCallback, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
@@ -216,7 +216,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ navigation, route }) => 
 						<Button
 							title="Udostępnij"
 							variant="primary"
-							leftIcon={<Share2 size={16} color="#ffffff" />}
+							leftIcon={<Share size={16} color="#ffffff" />}
 							onPress={handleShare}
 							loading={loading}
 							disabled={!canSubmit}

@@ -1,11 +1,12 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ArrowLeft, Plus, Share2, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Edit3, MoreVertical, Plus, Share, Trash2 } from 'lucide-react-native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Alert, FlatList, Text, type TextInput, View } from 'react-native';
+import { Alert, FlatList, Text, type TextInput, TouchableOpacity, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Screen } from '@/components/ui/layout/Screen';
 import { TaskItem } from '@/components/ui/lists/TaskItem';
+import { Modal } from '@/components/ui/Modal';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useList } from '@/context/ListContext';
 import { useTheme } from '@/styles/theme';
@@ -64,12 +65,298 @@ const AddTaskInput: React.FC<{
 
 AddTaskInput.displayName = 'AddTaskInput';
 
+// Separate memoized component for list title with context menu
+const ListTitleWithMenu: React.FC<{
+	title: string;
+	canEdit: boolean;
+	canShare: boolean;
+	canDelete: boolean;
+	onContextMenuToggle: (show: boolean, position?: { x: number; y: number }) => void;
+}> = React.memo(({ title, canEdit, canShare, canDelete, onContextMenuToggle }) => {
+	const { theme } = useTheme();
+
+	const handleToggleContextMenu = useCallback(() => {
+		onContextMenuToggle(true, { x: 24, y: 12 });
+	}, [onContextMenuToggle]);
+
+	return (
+		<View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+			<Text
+				style={{
+					fontSize: theme.fontSize.xl,
+					fontWeight: theme.fontWeight.bold,
+					color: theme.colors.textPrimary,
+					flex: 1,
+				}}
+				numberOfLines={1}
+			>
+				{title}
+			</Text>
+			{(canEdit || canShare || canDelete) && (
+				<View>
+					<Button
+						title=""
+						variant="ghost"
+						size="sm"
+						leftIcon={<MoreVertical size={16} color={theme.colors.textSecondary} />}
+						onPress={handleToggleContextMenu}
+						style={{ marginLeft: theme.spacing.sm }}
+					/>
+				</View>
+			)}
+		</View>
+	);
+});
+
+ListTitleWithMenu.displayName = 'ListTitleWithMenu';
+
+// Floating context menu component
+const FloatingContextMenu: React.FC<{
+	visible: boolean;
+	position: { x: number; y: number } | null;
+	canEdit: boolean;
+	canShare: boolean;
+	canDelete: boolean;
+	onShare: () => void;
+	onDelete: () => void;
+	onEdit: () => void;
+	onClose: () => void;
+}> = React.memo(
+	({ visible, position, canEdit, canShare, canDelete, onShare, onDelete, onEdit, onClose }) => {
+		const { theme } = useTheme();
+
+		if (!visible || !position) return null;
+
+		return (
+			<>
+				{/* Backdrop to close menu when tapping outside */}
+				<TouchableOpacity
+					style={{
+						position: 'absolute',
+						top: 0,
+						left: 0,
+						right: 0,
+						bottom: 0,
+						zIndex: 9998,
+					}}
+					onPress={onClose}
+					activeOpacity={0}
+				/>
+				{/* Context menu */}
+				<View
+					style={{
+						position: 'absolute',
+						top: position.y,
+						right: position.x,
+						backgroundColor: theme.colors.surface,
+						borderRadius: theme.borderRadius.md,
+						borderWidth: 1,
+						borderColor: theme.colors.border,
+						shadowColor: theme.colors.shadow,
+						shadowOffset: { width: 0, height: 2 },
+						shadowOpacity: 0.1,
+						shadowRadius: 4,
+						elevation: 3,
+						zIndex: 9999,
+						minWidth: 160,
+						paddingVertical: theme.spacing.xs,
+					}}
+				>
+					{canEdit && (
+						<TouchableOpacity
+							style={{
+								flexDirection: 'row',
+								alignItems: 'center',
+								paddingHorizontal: theme.spacing.lg,
+								paddingVertical: theme.spacing.md,
+								borderBottomWidth: canShare || canDelete ? 1 : 0,
+								borderBottomColor: theme.colors.border,
+							}}
+							onPress={onEdit}
+						>
+							<Edit3 size={16} color={theme.colors.textSecondary} />
+							<Text
+								style={{
+									marginLeft: theme.spacing.md,
+									fontSize: theme.fontSize.base,
+									color: theme.colors.textSecondary,
+									fontWeight: theme.fontWeight.medium,
+								}}
+							>
+								Edytuj nazwę
+							</Text>
+						</TouchableOpacity>
+					)}
+					{canShare && (
+						<TouchableOpacity
+							style={{
+								flexDirection: 'row',
+								alignItems: 'center',
+								paddingHorizontal: theme.spacing.lg,
+								paddingVertical: theme.spacing.md,
+								borderBottomWidth: canDelete ? 1 : 0,
+								borderBottomColor: theme.colors.border,
+							}}
+							onPress={onShare}
+						>
+							<Share size={16} color={theme.colors.primary} />
+							<Text
+								style={{
+									marginLeft: theme.spacing.md,
+									fontSize: theme.fontSize.base,
+									color: theme.colors.primary,
+									fontWeight: theme.fontWeight.medium,
+								}}
+							>
+								Udostępnij
+							</Text>
+						</TouchableOpacity>
+					)}
+					{canDelete && (
+						<TouchableOpacity
+							style={{
+								flexDirection: 'row',
+								alignItems: 'center',
+								paddingHorizontal: theme.spacing.lg,
+								paddingVertical: theme.spacing.md,
+							}}
+							onPress={onDelete}
+						>
+							<Trash2 size={16} color={theme.colors.error} />
+							<Text
+								style={{
+									marginLeft: theme.spacing.md,
+									fontSize: theme.fontSize.base,
+									color: theme.colors.error,
+									fontWeight: theme.fontWeight.medium,
+								}}
+							>
+								Usuń listę
+							</Text>
+						</TouchableOpacity>
+					)}
+				</View>
+			</>
+		);
+	},
+);
+
+FloatingContextMenu.displayName = 'FloatingContextMenu';
+
+// Inline edit modal component
+const EditTitleModal: React.FC<{
+	visible: boolean;
+	title: string;
+	onClose: () => void;
+	onSave: (newTitle: string) => Promise<void>;
+}> = React.memo(({ visible, title, onClose, onSave }) => {
+	const { theme } = useTheme();
+	const [editTitle, setEditTitle] = useState(title);
+	const [loading, setLoading] = useState(false);
+	const [titleError, setTitleError] = useState('');
+
+	const validateTitle = useCallback((value: string) => {
+		if (!value.trim()) {
+			return 'Nazwa listy jest wymagana';
+		}
+		if (value.length > 50) {
+			return 'Nazwa listy nie może być dłuższa niż 50 znaków';
+		}
+		return '';
+	}, []);
+
+	const handleTitleChange = useCallback(
+		(value: string) => {
+			setEditTitle(value);
+			setTitleError(validateTitle(value));
+		},
+		[validateTitle],
+	);
+
+	const handleSubmit = useCallback(async () => {
+		const error = validateTitle(editTitle);
+		if (error) {
+			setTitleError(error);
+			return;
+		}
+
+		if (editTitle.trim() === title) {
+			onClose();
+			return;
+		}
+
+		setLoading(true);
+		setTitleError('');
+
+		try {
+			await onSave(editTitle.trim());
+			onClose();
+		} catch (_error) {
+			// Error is handled by the parent component
+		} finally {
+			setLoading(false);
+		}
+	}, [editTitle, title, onSave, onClose, validateTitle]);
+
+	const canSubmit = editTitle.trim() && !titleError && !loading;
+
+	// Reset form when modal opens/closes
+	React.useEffect(() => {
+		if (visible) {
+			setEditTitle(title);
+			setTitleError('');
+			setLoading(false);
+		}
+	}, [visible, title]);
+
+	return (
+		<Modal visible={visible} onClose={onClose} title="Edytuj nazwę listy" showCloseButton={true}>
+			<View style={{ padding: theme.spacing.lg }}>
+				<Input
+					label="Nazwa listy"
+					value={editTitle}
+					onChangeText={handleTitleChange}
+					placeholder="Wprowadź nazwę listy"
+					error={titleError}
+					required
+					maxLength={50}
+					style={{ marginBottom: theme.spacing.xl }}
+				/>
+
+				<View style={{ flexDirection: 'row', gap: theme.spacing.md }}>
+					<Button
+						title="Anuluj"
+						variant="outline"
+						onPress={onClose}
+						style={{ flex: 1 }}
+						disabled={loading}
+					/>
+					<Button
+						title="Zapisz"
+						onPress={handleSubmit}
+						loading={loading}
+						disabled={!canSubmit}
+						style={{ flex: 1 }}
+					/>
+				</View>
+			</View>
+		</Modal>
+	);
+});
+
+EditTitleModal.displayName = 'EditTitleModal';
+
 export const ListDetailScreenContent: React.FC<ListDetailScreenProps> = ({ navigation, route }) => {
 	const { list: initialList } = route.params;
 	const [newTaskText, setNewTaskText] = useState('');
 	const [isAddingTask, setIsAddingTask] = useState(false);
+	const [showEditModal, setShowEditModal] = useState(false);
+	const [showContextMenu, setShowContextMenu] = useState(false);
+	const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(
+		null,
+	);
 
-	const { lists, addTask, updateTask, deleteTask, toggleTask, deleteList } = useList();
+	const { lists, addTask, updateTask, deleteTask, toggleTask, deleteList, updateList } = useList();
 	const { theme } = useTheme();
 
 	// Use stable reference to current list to prevent unnecessary re-renders
@@ -97,12 +384,54 @@ export const ListDetailScreenContent: React.FC<ListDetailScreenProps> = ({ navig
 			canEdit: true,
 			canDelete: true,
 			canShare: true,
+			canEditTitle: true,
 		};
 	}, [lists, initialList]);
 
 	const handleGoBack = useCallback(() => {
 		navigation.goBack();
 	}, [navigation]);
+
+	const handleTitleChange = useCallback(
+		async (newTitle: string) => {
+			try {
+				const result = await updateList(currentList.id, { title: newTitle });
+				if (!result.success) {
+					Alert.alert('Błąd', result.error || 'Nie udało się zaktualizować nazwy listy');
+					throw new Error(result.error);
+				}
+			} catch (_error) {
+				Alert.alert('Błąd', 'Wystąpił nieoczekiwany błąd');
+				throw _error;
+			}
+		},
+		[currentList.id, updateList],
+	);
+
+	const handleEditTitle = useCallback(() => {
+		setShowEditModal(true);
+	}, []);
+
+	const handleCloseEditModal = useCallback(() => {
+		setShowEditModal(false);
+	}, []);
+
+	const handleContextMenuToggle = useCallback(
+		(show: boolean, position?: { x: number; y: number }) => {
+			setShowContextMenu(show);
+			if (show && position) {
+				setContextMenuPosition(position);
+			} else {
+				setContextMenuPosition(null);
+			}
+		},
+		[],
+	);
+
+	const handleCloseContextMenu = useCallback(() => {
+		setShowContextMenu(false);
+		setContextMenuPosition(null);
+	}, []);
 
 	const handleAddTask = useCallback(async () => {
 		if (!newTaskText.trim()) return;
@@ -238,38 +567,13 @@ export const ListDetailScreenContent: React.FC<ListDetailScreenProps> = ({ navig
 							onPress={handleGoBack}
 							style={{ marginRight: theme.spacing.sm }}
 						/>
-						<Text
-							style={{
-								fontSize: theme.fontSize.xl,
-								fontWeight: theme.fontWeight.bold,
-								color: theme.colors.textPrimary,
-								flex: 1,
-							}}
-							numberOfLines={1}
-						>
-							{currentList.title}
-						</Text>
-					</View>
-
-					<View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
-						{currentList.canShare && (
-							<Button
-								title=""
-								variant="ghost"
-								size="sm"
-								leftIcon={<Share2 size={18} color={theme.colors.primary} />}
-								onPress={handleShareList}
-							/>
-						)}
-						{currentList.canDelete && (
-							<Button
-								title=""
-								variant="ghost"
-								size="sm"
-								leftIcon={<Trash2 size={18} color={theme.colors.error} />}
-								onPress={handleDeleteList}
-							/>
-						)}
+						<ListTitleWithMenu
+							title={currentList.title}
+							canEdit={currentList.canEditTitle}
+							canShare={currentList.canShare}
+							canDelete={currentList.canDelete}
+							onContextMenuToggle={handleContextMenuToggle}
+						/>
 					</View>
 				</View>
 
@@ -322,8 +626,7 @@ export const ListDetailScreenContent: React.FC<ListDetailScreenProps> = ({ navig
 			theme,
 			currentList,
 			handleGoBack,
-			handleShareList,
-			handleDeleteList,
+			handleContextMenuToggle,
 			newTaskText,
 			handleAddTask,
 			isAddingTask,
@@ -379,6 +682,23 @@ export const ListDetailScreenContent: React.FC<ListDetailScreenProps> = ({ navig
 				contentContainerStyle={{
 					paddingBottom: theme.spacing.xxl,
 				}}
+			/>
+			<EditTitleModal
+				visible={showEditModal}
+				title={currentList.title}
+				onClose={handleCloseEditModal}
+				onSave={handleTitleChange}
+			/>
+			<FloatingContextMenu
+				visible={showContextMenu}
+				position={contextMenuPosition}
+				canEdit={currentList.canEditTitle}
+				canShare={currentList.canShare}
+				canDelete={currentList.canDelete}
+				onShare={handleShareList}
+				onDelete={handleDeleteList}
+				onEdit={handleEditTitle}
+				onClose={handleCloseContextMenu}
 			/>
 		</Screen>
 	);

@@ -3,6 +3,7 @@ import type React from 'react';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { ListDetailScreen } from '@/screens/list/ListDetailScreen';
 import { CreateListModal } from '@/screens/modals/CreateListModal';
+import { EditListModal } from '@/screens/modals/EditListModal';
 import { ShareModal } from '@/screens/modals/ShareModal';
 import type { AppStackParamList } from '@/types';
 
@@ -22,6 +23,14 @@ export const AppNavigator: React.FC = () => {
 			<Stack.Screen
 				name="CreateListModal"
 				component={CreateListModal}
+				options={{
+					presentation: 'transparentModal',
+					animation: 'slide_from_bottom',
+				}}
+			/>
+			<Stack.Screen
+				name="EditListModal"
+				component={EditListModal}
 				options={{
 					presentation: 'transparentModal',
 					animation: 'slide_from_bottom',

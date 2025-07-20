@@ -1,3 +1,6 @@
+// Import list types
+import type { ListWithStats } from './lists';
+
 // User-related types
 export interface User {
 	id: string;
@@ -79,6 +82,7 @@ export type AppStackParamList = {
 	ListDetail: { list: List };
 	CreateListModal: undefined;
 	ShareModal: { list: List };
+	EditListModal: { list: ListWithStats };
 };
 
 // Component prop types
